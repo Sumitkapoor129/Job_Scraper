@@ -1,21 +1,26 @@
 const state = {
   lastPayload: null,
   jobs: [],
+  page: 1,
 };
 
 const els = {
   form: document.getElementById("searchForm"),
   q: document.getElementById("q"),
   where: document.getElementById("where"),
-  page: document.getElementById("page"),
   perPage: document.getElementById("per_page"),
   searchBtn: document.getElementById("searchBtn"),
   status: document.getElementById("status"),
   body: document.getElementById("jobsBody"),
+  cards: document.getElementById("jobsCards"),
   count: document.getElementById("count"),
   totalAvailable: document.getElementById("totalAvailable"),
   source: document.getElementById("source"),
   fetchedAt: document.getElementById("fetchedAt"),
+  querySummary: document.getElementById("querySummary"),
+  pageSummary: document.getElementById("pageSummary"),
+  prevPage: document.getElementById("prevPage"),
+  nextPage: document.getElementById("nextPage"),
   downloadJson: document.getElementById("downloadJson"),
   downloadCsv: document.getElementById("downloadCsv"),
 };
@@ -50,6 +55,7 @@ function sanitize(value) {
 function renderJobs(jobs) {
   if (!jobs.length) {
     els.body.innerHTML = `<tr><td colspan="7" class="empty">No jobs found for this query.</td></tr>`;
+    els.cards.innerHTML = `<div class="job-card empty">No jobs found for this query.</div>`;
     return;
   }
 
@@ -69,6 +75,24 @@ function renderJobs(jobs) {
       `;
     })
     .join("");
+
+  els.cards.innerHTML = jobs
+    .map(
+      (job) => `
+        <article class="job-card">
+          <h3>${sanitize(job.title || "-")}</h3>
+          <div class="job-card-meta">
+            <div><strong>Company:</strong> ${sanitize(job.company || "-")}</div>
+            <div><strong>Location:</strong> ${sanitize(job.location || "-")}</div>
+            <div><strong>Salary:</strong> ${sanitize(formatSalary(job.salaryMin, job.salaryMax))}</div>
+            <div><strong>Type:</strong> ${sanitize(job.contractType || job.contractTime || "-")}</div>
+            <div><strong>Posted:</strong> ${sanitize(formatDate(job.created))}</div>
+          </div>
+          ${job.redirectUrl ? `<a href="${sanitize(job.redirectUrl)}" target="_blank" rel="noreferrer">Open job</a>` : ""}
+        </article>
+      `
+    )
+    .join("");
 }
 
 function updateStats(payload) {
@@ -76,6 +100,25 @@ function updateStats(payload) {
   els.totalAvailable.textContent = payload.totalAvailable == null ? "-" : Number(payload.totalAvailable).toLocaleString();
   els.source.textContent = payload.source || "-";
   els.fetchedAt.textContent = formatDate(payload.fetchedAt);
+}
+
+function updatePagination(payload) {
+  const totalAvailable = Number(payload.totalAvailable);
+  const perPage = Number(payload.perPage || els.perPage.value || 20);
+  const maxPageFromTotal = Number.isFinite(totalAvailable) && totalAvailable > 0 ? Math.ceil(totalAvailable / perPage) : null;
+  const hasMoreFromCount = Number(payload.count || 0) >= perPage;
+  const canGoNext = maxPageFromTotal ? state.page < maxPageFromTotal : hasMoreFromCount && state.page < 50;
+
+  els.pageSummary.textContent = maxPageFromTotal ? `Page ${state.page} of ${maxPageFromTotal}` : `Page ${state.page}`;
+  els.prevPage.disabled = state.page <= 1;
+  els.nextPage.disabled = !canGoNext;
+}
+
+function updateQuerySummary() {
+  const q = els.q.value.trim() || "Any role";
+  const where = els.where.value.trim() || "Any location";
+  const perPage = els.perPage.value || "20";
+  els.querySummary.textContent = `${q} in ${where} | ${perPage} per page`;
 }
 
 function downloadFile(name, content, mimeType) {
@@ -115,16 +158,20 @@ function toCsv(rows) {
   return [headers.join(","), ...rows.map((row) => headers.map((h) => csvValue(row[h])).join(","))].join("\n");
 }
 
-async function fetchJobs() {
+async function fetchJobs({ page = state.page } = {}) {
+  state.page = page;
   const params = new URLSearchParams({
     q: els.q.value.trim(),
     where: els.where.value.trim(),
-    page: els.page.value || "1",
+    page: String(state.page),
     per_page: els.perPage.value || "20",
   });
 
-  setStatus("Scraping jobs...");
+  updateQuerySummary();
+  setStatus(`Scraping page ${state.page}...`);
   els.searchBtn.disabled = true;
+  els.prevPage.disabled = true;
+  els.nextPage.disabled = true;
 
   try {
     const response = await fetch(`/api/jobs?${params.toString()}`);
@@ -137,9 +184,15 @@ async function fetchJobs() {
     state.jobs = payload.jobs || [];
     updateStats(payload);
     renderJobs(state.jobs);
-    setStatus(`Loaded ${payload.count} jobs.`);
+    updatePagination(payload);
+    setStatus(`Loaded ${payload.count} jobs from page ${state.page}.`);
   } catch (error) {
     setStatus(`Error: ${error.message}`);
+    updatePagination({
+      count: 0,
+      totalAvailable: state.lastPayload?.totalAvailable ?? null,
+      perPage: els.perPage.value,
+    });
   } finally {
     els.searchBtn.disabled = false;
   }
@@ -147,8 +200,24 @@ async function fetchJobs() {
 
 els.form.addEventListener("submit", async (event) => {
   event.preventDefault();
-  await fetchJobs();
+  await fetchJobs({ page: 1 });
 });
+
+els.prevPage.addEventListener("click", async () => {
+  if (state.page <= 1) return;
+  await fetchJobs({ page: state.page - 1 });
+});
+
+els.nextPage.addEventListener("click", async () => {
+  await fetchJobs({ page: state.page + 1 });
+});
+
+els.perPage.addEventListener("change", () => {
+  updateQuerySummary();
+});
+
+els.q.addEventListener("input", updateQuerySummary);
+els.where.addEventListener("input", updateQuerySummary);
 
 els.downloadJson.addEventListener("click", () => {
   if (!state.lastPayload) {
@@ -166,4 +235,11 @@ els.downloadCsv.addEventListener("click", () => {
   }
   const stamp = new Date().toISOString().replace(/[:.]/g, "-");
   downloadFile(`jobs-${stamp}.csv`, toCsv(state.jobs), "text/csv;charset=utf-8");
+});
+
+updateQuerySummary();
+updatePagination({
+  count: 0,
+  totalAvailable: null,
+  perPage: els.perPage.value,
 });

@@ -37,10 +37,6 @@
             <input id="where" name="where" type="text" placeholder="delhi, bengaluru, mumbai..." />
           </label>
           <label>
-            Page
-            <input id="page" name="page" type="number" min="1" max="50" value="1" />
-          </label>
-          <label>
             Per Page
             <select id="per_page" name="per_page">
               <option>10</option>
@@ -52,6 +48,10 @@
           </label>
           <button id="searchBtn" type="submit">Scrape Jobs</button>
         </form>
+        <div class="search-notes">
+          <p>Search by role and city, then move through pages with the controls below.</p>
+          <div id="querySummary" class="query-summary">No active search yet.</div>
+        </div>
       </section>
 
       <section class="stats reveal" aria-live="polite">
@@ -81,7 +81,17 @@
         </div>
       </section>
 
+      <section class="pagination reveal">
+        <button id="prevPage" type="button" class="pager-btn">Previous</button>
+        <div class="pager-readout">
+          <p class="label">Current Page</p>
+          <p id="pageSummary" class="value">Page 1</p>
+        </div>
+        <button id="nextPage" type="button" class="pager-btn">Next</button>
+      </section>
+
       <section class="results reveal">
+        <div id="jobsCards" class="jobs-cards" aria-live="polite"></div>
         <div class="table-wrap">
           <table>
             <thead>
