@@ -79,6 +79,15 @@ test/
 - `npm run scrape -- --q ...` - fetch jobs and save files
 - `npm test` - run unit tests
 
+## Vercel
+
+The project includes:
+
+- [vercel.json](C:/Users/91983/Desktop/VibeCoded/job-scraper/vercel.json) for routing
+- [api/index.js](C:/Users/91983/Desktop/VibeCoded/job-scraper/api/index.js) as the Vercel serverless entrypoint
+
+This keeps the frontend on `/` and routes `/api/*` and `/health` through the Express app.
+
 ## Notes
 
 - Use `STRICT_ENV=true` in production to enforce required environment variables at boot.
