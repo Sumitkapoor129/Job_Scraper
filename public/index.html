@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Job Scraper Workspace</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Sora:wght@600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="ambient ambient-a" aria-hidden="true"></div>
+    <div class="ambient ambient-b" aria-hidden="true"></div>
+
+    <header class="hero">
+      <p class="eyebrow">Job Scraper Workspace</p>
+      <h1>Search Once. Export Clean Job Data.</h1>
+      <p class="hero-copy">
+        Run structured Adzuna searches from one screen, inspect results instantly, and export JSON or CSV for your
+        pipeline.
+      </p>
+    </header>
+
+    <main class="workspace">
+      <section class="controls reveal">
+        <form id="searchForm">
+          <label>
+            What
+            <input id="q" name="q" type="text" placeholder="frontend, nodejs, java..." />
+          </label>
+          <label>
+            Where
+            <input id="where" name="where" type="text" placeholder="delhi, bengaluru, mumbai..." />
+          </label>
+          <label>
+            Page
+            <input id="page" name="page" type="number" min="1" max="50" value="1" />
+          </label>
+          <label>
+            Per Page
+            <select id="per_page" name="per_page">
+              <option>10</option>
+              <option selected>20</option>
+              <option>30</option>
+              <option>40</option>
+              <option>50</option>
+            </select>
+          </label>
+          <button id="searchBtn" type="submit">Scrape Jobs</button>
+        </form>
+      </section>
+
+      <section class="stats reveal" aria-live="polite">
+        <div>
+          <p class="label">Fetched</p>
+          <p id="count" class="value">0</p>
+        </div>
+        <div>
+          <p class="label">Total Available</p>
+          <p id="totalAvailable" class="value">-</p>
+        </div>
+        <div>
+          <p class="label">Source</p>
+          <p id="source" class="value">Adzuna</p>
+        </div>
+        <div>
+          <p class="label">Last Pull</p>
+          <p id="fetchedAt" class="value">-</p>
+        </div>
+      </section>
+
+      <section class="toolbar reveal">
+        <p id="status" role="status">Ready</p>
+        <div class="actions">
+          <button id="downloadJson" type="button">Download JSON</button>
+          <button id="downloadCsv" type="button">Download CSV</button>
+        </div>
+      </section>
+
+      <section class="results reveal">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Company</th>
+                <th>Location</th>
+                <th>Salary</th>
+                <th>Type</th>
+                <th>Posted</th>
+                <th>Link</th>
+              </tr>
+            </thead>
+            <tbody id="jobsBody">
+              <tr>
+                <td colspan="7" class="empty">Run a search to load jobs.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="/main.js"></script>
+  </body>
+</html>

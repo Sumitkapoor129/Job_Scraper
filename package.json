@@ -1,0 +1,23 @@
+{
+  "name": "job-scraper",
+  "version": "1.0.0",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch src/server.js",
+    "start": "node src/server.js",
+    "scrape": "node src/cli/scrape.js",
+    "test": "node test/run-tests.js"
+  },
+  "keywords": [],
+  "author": "Sumit Kapoor",
+  "license": "ISC",
+  "description": "Job scraper API + CLI (Adzuna provider, normalization, file storage)",
+  "dependencies": {
+    "axios": "^1.13.6",
+    "cheerio": "^1.2.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1"
+  }
+}
