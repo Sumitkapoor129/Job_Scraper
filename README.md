@@ -81,12 +81,18 @@ test/
 
 ## Vercel
 
-The project includes:
+For Git-based Vercel deploys, the project uses the root [index.js](C:/Users/91983/Desktop/VibeCoded/job-scraper/index.js) as the Express entrypoint.
 
-- [vercel.json](C:/Users/91983/Desktop/VibeCoded/job-scraper/vercel.json) for routing
-- [api/index.js](C:/Users/91983/Desktop/VibeCoded/job-scraper/api/index.js) as the Vercel serverless entrypoint
+Vercel can serve:
 
-This keeps the frontend on `/` and routes `/api/*` and `/health` through the Express app.
+- the frontend from `public/`
+- the Express app from `index.js`
+
+Set these environment variables in the Vercel project settings:
+
+- `ADZUNA_APP_ID`
+- `ADZUNA_APP_KEY`
+- optional: `ADZUNA_COUNTRY`
 
 ## Notes
 
